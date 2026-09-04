@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import timedelta
+from pathlib import Path
 
 from database import (
     get_rooms,
@@ -33,20 +34,32 @@ from billing_service import (
 # --------------------------------------------------
 
 st.set_page_config(
-    page_title="Hostel Electricity Billing",
+    page_title="Beds & Dreams Men's Hostel Electricity Billing",
     page_icon="⚡",
     layout="wide"
 )
 
+# --------------------------------------------------
+# Hostel Logo
+# --------------------------------------------------
+
+logo_path = Path("assets/sigma_logo.png")
+
+if logo_path.exists():
+
+    st.image(
+        str(logo_path),
+        width=180
+    )
 
 # --------------------------------------------------
 # Page Title
 # --------------------------------------------------
 
-st.title("⚡ Hostel Electricity Billing")
+st.title("⚡ Beds & Dreams Men's Hostel Electricity Billing")
 
 st.write(
-    "Welcome to the Hostel Electricity Billing System."
+    "Welcome to the Beds & Dreams | SIGMA Men's Hostel Electricity Billing System."
 )
 
 
@@ -58,33 +71,168 @@ payment_summary = get_payment_summary()
 
 st.subheader("📊 Billing Dashboard")
 
+# --------------------------------------------------
+# Dashboard Cards
+# --------------------------------------------------
+
+st.markdown(
+    """
+    <style>
+
+    .dashboard-card {
+        background: #FFFDF7;
+        border: 1px solid #D6B15A;
+        border-radius: 14px;
+        padding: 18px 20px;
+        margin-bottom: 10px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+        min-height: 125px;
+    }
+
+    .dashboard-icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+    }
+
+    .dashboard-title {
+        color: #0B243B;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    .dashboard-value {
+        color: #0B243B;
+        font-size: 25px;
+        font-weight: 700;
+    }
+
+    .dashboard-subtitle {
+        color: #8A6A20;
+        font-size: 12px;
+        margin-top: 4px;
+    }
+     
+    .stApp {
+    background-color: #F7F3E8;
+    }
+
+    .main .block-container {
+    background-color: #F7F3E8;
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
 col1, col2, col3, col4 = st.columns(4)
 
-col1.metric(
-    "Billing Cycles",
-    payment_summary["billing_cycles"]
+with col1:
+
+    st.html(
+        f"""
+        <div class="dashboard-card">
+            <div class="dashboard-icon">⚡</div>
+            <div class="dashboard-title">Billing Cycles</div>
+            <div class="dashboard-value">
+                {payment_summary["billing_cycles"]}
+            </div>
+            <div class="dashboard-subtitle">
+                Completed billing periods
+            </div>
+        </div>
+        """
+    )
+
+
+with col2:
+
+    st.html(
+        f"""
+        <div class="dashboard-card">
+            <div class="dashboard-icon">💰</div>
+            <div class="dashboard-title">Total Billed</div>
+            <div class="dashboard-value">
+                ₹{float(payment_summary["total_billed"]):,.2f}
+            </div>
+            <div class="dashboard-subtitle">
+                Total electricity billing
+            </div>
+        </div>
+        """
+    )
+
+
+with col3:
+
+    st.html(
+        f"""
+        <div class="dashboard-card">
+            <div class="dashboard-icon">✅</div>
+            <div class="dashboard-title">Total Paid</div>
+            <div class="dashboard-value">
+                ₹{float(payment_summary["total_paid"]):,.2f}
+            </div>
+            <div class="dashboard-subtitle">
+                Amount collected
+            </div>
+        </div>
+        """
+    )
+
+
+with col4:
+
+    st.html(
+        f"""
+        <div class="dashboard-card">
+            <div class="dashboard-icon">⏳</div>
+            <div class="dashboard-title">Total Pending</div>
+            <div class="dashboard-value">
+                ₹{float(payment_summary["total_pending"]):,.2f}
+            </div>
+            <div class="dashboard-subtitle">
+                Amount yet to collect
+            </div>
+        </div>
+        """
+    )
+
+
+# --------------------------------------------------
+# Collection Rate
+# --------------------------------------------------
+
+collection_rate = float(
+    payment_summary["collection_rate"]
 )
 
-col2.metric(
-    "Total Billed",
-    f"₹{float(payment_summary['total_billed']):,.2f}"
-)
+st.html(
+    f"""
+    <div class="dashboard-card"
+         style="text-align: center; margin-top: 8px;">
 
-col3.metric(
-    "Total Paid",
-    f"₹{float(payment_summary['total_paid']):,.2f}"
-)
+        <div class="dashboard-icon">📈</div>
 
-col4.metric(
-    "Total Pending",
-    f"₹{float(payment_summary['total_pending']):,.2f}"
-)
+        <div class="dashboard-title">
+            Overall Collection Rate
+        </div>
 
-st.metric(
-    "Overall Collection Rate",
-    f"{float(payment_summary['collection_rate']):.1f}%"
-)
+        <div class="dashboard-value">
+            {collection_rate:.1f}%
+        </div>
 
+        <div class="dashboard-subtitle">
+            Paid amount ÷ total billed amount
+        </div>
+
+    </div>
+    """
+)
 
 # --------------------------------------------------
 # Load Rooms
