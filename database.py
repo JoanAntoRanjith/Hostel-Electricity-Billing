@@ -176,3 +176,188 @@ def get_billing_history():
     connection.close()
 
     return billing_history
+
+def get_tenant_bills_by_cycle(cycle_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            tb.bill_id,
+            tb.tenant_id,
+            t.full_name,
+            t.phone,
+            tb.occupied_days,
+            tb.tenant_days_total,
+            tb.amount,
+            tb.payment_status
+        FROM tenant_bills tb
+        JOIN tenants t
+            ON tb.tenant_id = t.tenant_id
+        WHERE tb.cycle_id = %s
+        ORDER BY t.full_name;
+    """, (cycle_id,))
+
+    tenant_bills = cursor.fetchall()
+
+    columns = [
+        "bill_id",
+        "tenant_id",
+        "full_name",
+        "phone",
+        "occupied_days",
+        "tenant_days_total",
+        "amount",
+        "payment_status"
+    ]
+
+    tenant_bills = pd.DataFrame(
+        tenant_bills,
+        columns=columns
+    )
+
+    cursor.close()
+    connection.close()
+
+    return tenant_bills
+
+def update_payment_status(bill_id, payment_status):
+    allowed_statuses = [
+        "Pending",
+        "Paid"
+    ]
+
+    if payment_status not in allowed_statuses:
+        raise ValueError(
+            "Invalid payment status."
+        )
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+
+        cursor.execute("""
+            UPDATE tenant_bills
+            SET payment_status = %s
+            WHERE bill_id = %s;
+        """, (
+            payment_status,
+            bill_id
+        ))
+
+        if cursor.rowcount == 0:
+            raise ValueError(
+                "Tenant bill not found."
+            )
+
+        connection.commit()
+
+    except Exception:
+
+        connection.rollback()
+        raise
+
+    finally:
+
+        cursor.close()
+        connection.close()
+
+def get_payment_summary():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            COUNT(*) AS billing_cycles,
+            COALESCE(SUM(total_bill), 0) AS total_billed
+        FROM billing_cycles;
+    """)
+
+    billing_summary = cursor.fetchone()
+
+    cursor.execute("""
+        SELECT
+            COALESCE(
+                SUM(
+                    CASE
+                        WHEN payment_status = 'Paid'
+                        THEN amount
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS total_paid,
+
+            COALESCE(
+                SUM(
+                    CASE
+                        WHEN payment_status = 'Pending'
+                        THEN amount
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS total_pending
+
+        FROM tenant_bills;
+    """)
+
+    payment_summary = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    billing_cycles = billing_summary[0]
+    total_billed = billing_summary[1]
+
+    total_paid = payment_summary[0]
+    total_pending = payment_summary[1]
+
+    if total_billed > 0:
+        collection_rate = (
+            total_paid / total_billed
+        ) * 100
+    else:
+        collection_rate = 0
+
+    return {
+        "billing_cycles": billing_cycles,
+        "total_billed": total_billed,
+        "total_paid": total_paid,
+        "total_pending": total_pending,
+        "collection_rate": collection_rate
+    }
+
+def update_tenant_move_out(tenant_id, move_out_date):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+
+        cursor.execute("""
+            UPDATE occupancy
+            SET move_out_date = %s
+            WHERE tenant_id = %s
+              AND move_out_date IS NULL;
+        """, (
+            move_out_date,
+            tenant_id
+        ))
+
+        if cursor.rowcount == 0:
+            raise ValueError(
+                "Active occupancy record not found for this tenant."
+            )
+
+        connection.commit()
+
+    except Exception:
+
+        connection.rollback()
+        raise
+
+    finally:
+
+        cursor.close()
+        connection.close()

@@ -2,7 +2,15 @@ import streamlit as st
 import pandas as pd
 from datetime import timedelta
 
-from database import get_rooms
+from database import (
+    get_rooms,
+    get_occupancy,
+    get_billing_history,
+    get_tenant_bills_by_cycle,
+    update_payment_status,
+    get_payment_summary,
+    update_tenant_move_out
+)
 
 from meter_service import (
     get_previous_reading,
@@ -39,6 +47,42 @@ st.title("⚡ Hostel Electricity Billing")
 
 st.write(
     "Welcome to the Hostel Electricity Billing System."
+)
+
+
+# --------------------------------------------------
+# Dashboard Summary
+# --------------------------------------------------
+
+payment_summary = get_payment_summary()
+
+st.subheader("📊 Billing Dashboard")
+
+col1, col2, col3, col4 = st.columns(4)
+
+col1.metric(
+    "Billing Cycles",
+    payment_summary["billing_cycles"]
+)
+
+col2.metric(
+    "Total Billed",
+    f"₹{float(payment_summary['total_billed']):,.2f}"
+)
+
+col3.metric(
+    "Total Paid",
+    f"₹{float(payment_summary['total_paid']):,.2f}"
+)
+
+col4.metric(
+    "Total Pending",
+    f"₹{float(payment_summary['total_pending']):,.2f}"
+)
+
+st.metric(
+    "Overall Collection Rate",
+    f"{float(payment_summary['collection_rate']):.1f}%"
 )
 
 
@@ -403,6 +447,367 @@ if "billing_preview" in st.session_state:
             f"Room bill = ₹{room_total:,.2f}, "
             f"Tenant bills = ₹{tenant_total:,.2f}"
         )
+
+
+# --------------------------------------------------
+# Tenant Management
+# --------------------------------------------------
+
+st.divider()
+
+st.subheader("👤 Tenant Management")
+
+occupancy = get_occupancy()
+
+if occupancy.empty:
+
+    st.info(
+        "No tenant occupancy records found."
+    )
+
+else:
+
+    active_tenants = occupancy[
+        occupancy["move_out_date"].isna()
+    ].copy()
+
+    if active_tenants.empty:
+
+        st.info(
+            "No active tenants found."
+        )
+
+    else:
+
+        tenant_options = active_tenants[
+            "tenant_id"
+        ].tolist()
+
+        selected_tenant_id = st.selectbox(
+            "Select Tenant",
+            tenant_options,
+            format_func=lambda tenant_id:
+                active_tenants.loc[
+                    active_tenants["tenant_id"] == tenant_id,
+                    "full_name"
+                ].iloc[0]
+        )
+
+        selected_tenant = active_tenants[
+            active_tenants["tenant_id"] == selected_tenant_id
+        ].iloc[0]
+
+        col1, col2, col3 = st.columns(3)
+
+        col1.write(
+            f"**Room:** {selected_tenant['room_number']}"
+        )
+
+        col2.write(
+            f"**Move-in Date:** "
+            f"{selected_tenant['move_in_date']}"
+        )
+
+        col3.write(
+            "**Status:** Active"
+        )
+
+        move_out_date = st.date_input(
+            "Move-out Date"
+        )
+
+        if st.button("Record Move-Out"):
+
+            try:
+
+                update_tenant_move_out(
+                    tenant_id=selected_tenant_id,
+                    move_out_date=move_out_date
+                )
+
+                st.success(
+                    "Tenant move-out recorded successfully."
+                )
+
+                st.rerun()
+
+            except ValueError as error:
+
+                st.error(
+                    str(error)
+                )
+
+            except Exception as error:
+
+                st.error(
+                    f"Unexpected error: {error}"
+                )
+
+
+# --------------------------------------------------
+# Billing History
+# --------------------------------------------------
+
+st.divider()
+
+st.subheader("📋 Billing History")
+
+billing_history = get_billing_history()
+
+if billing_history.empty:
+
+    st.info(
+        "No finalized billing records found."
+    )
+
+else:
+
+    # ----------------------------------------------
+    # Room Filter
+    # ----------------------------------------------
+
+    room_filter_options = ["All Rooms"] + sorted(
+        billing_history["room_number"].unique().tolist()
+    )
+
+    selected_history_room = st.selectbox(
+        "Filter by Room",
+        room_filter_options
+    )
+
+    if selected_history_room != "All Rooms":
+
+        filtered_history = billing_history[
+            billing_history["room_number"]
+            == selected_history_room
+        ].copy()
+
+    else:
+
+        filtered_history = billing_history.copy()
+
+    # ----------------------------------------------
+    # Prepare Display Data
+    # ----------------------------------------------
+
+    display_history = filtered_history.copy()
+
+    display_history["Billing Period"] = (
+        display_history["start_date"].astype(str)
+        + " → "
+        + display_history["end_date"].astype(str)
+    )
+
+    display_history["Rate / Unit"] = (
+        display_history["rate_per_unit"]
+        .apply(lambda x: f"₹{float(x):,.2f}")
+    )
+
+    display_history["Total Bill"] = (
+        display_history["total_bill"]
+        .apply(lambda x: f"₹{float(x):,.2f}")
+    )
+
+    display_history = display_history[
+        [
+            "cycle_id",
+            "room_number",
+            "Billing Period",
+            "previous_reading",
+            "current_reading",
+            "units_consumed",
+            "Rate / Unit",
+            "Total Bill",
+            "tenant_count"
+        ]
+    ]
+
+    display_history.columns = [
+        "Cycle ID",
+        "Room",
+        "Billing Period",
+        "Previous Reading",
+        "Current Reading",
+        "Units",
+        "Rate / Unit",
+        "Total Bill",
+        "Tenants"
+    ]
+
+    st.dataframe(
+        display_history,
+        width="stretch",
+        hide_index=True
+    )
+
+    # ----------------------------------------------
+    # Billing Cycle Details
+    # ----------------------------------------------
+
+    st.subheader("🔍 Billing Cycle Details")
+
+    cycle_options = filtered_history[
+        "cycle_id"
+    ].tolist()
+
+    selected_cycle_id = st.selectbox(
+        "Select Billing Cycle",
+        cycle_options
+    )
+
+    tenant_bills = get_tenant_bills_by_cycle(
+        selected_cycle_id
+    )
+
+    # ----------------------------------------------
+    # Payment Summary
+    # ----------------------------------------------
+
+    if not tenant_bills.empty:
+
+        total_bill = tenant_bills["amount"].sum()
+
+        paid_bill = tenant_bills.loc[
+            tenant_bills["payment_status"] == "Paid",
+            "amount"
+        ].sum()
+
+        pending_bill = tenant_bills.loc[
+            tenant_bills["payment_status"] == "Pending",
+            "amount"
+        ].sum()
+
+        if total_bill > 0:
+
+            collection_rate = (
+                paid_bill / total_bill
+            ) * 100
+
+        else:
+
+            collection_rate = 0
+
+        st.subheader("💰 Payment Summary")
+
+        col1, col2, col3, col4 = st.columns(4)
+
+        col1.metric(
+            "Total Bill",
+            f"₹{float(total_bill):,.2f}"
+        )
+
+        col2.metric(
+            "Paid",
+            f"₹{float(paid_bill):,.2f}"
+        )
+
+        col3.metric(
+            "Pending",
+            f"₹{float(pending_bill):,.2f}"
+        )
+
+        col4.metric(
+            "Collection Rate",
+            f"{float(collection_rate):.1f}%"
+        )
+
+    if tenant_bills.empty:
+
+        st.info(
+            "No tenant bills found for this billing cycle."
+        )
+
+    else:
+
+        display_tenant_bills = tenant_bills.copy()
+
+        display_tenant_bills["Amount"] = (
+            display_tenant_bills["amount"]
+            .apply(lambda x: f"₹{float(x):,.2f}")
+        )
+
+        display_tenant_bills = display_tenant_bills[
+            [
+                "bill_id",
+                "full_name",
+                "occupied_days",
+                "tenant_days_total",
+                "Amount",
+                "payment_status"
+            ]
+        ]
+
+        display_tenant_bills.columns = [
+            "Bill ID",
+            "Tenant",
+            "Occupied Days",
+            "Total Tenant Days",
+            "Amount",
+            "Payment Status"
+        ]
+
+        st.dataframe(
+            display_tenant_bills,
+            width="stretch",
+            hide_index=True
+        )
+
+        # ------------------------------------------
+        # Update Payment Status
+        # ------------------------------------------
+
+        st.subheader("💳 Update Payment Status")
+
+        tenant_options = tenant_bills[
+            "bill_id"
+        ].tolist()
+
+        selected_bill_id = st.selectbox(
+            "Select Tenant Bill",
+            tenant_options,
+            format_func=lambda bill_id: (
+                tenant_bills.loc[
+                    tenant_bills["bill_id"] == bill_id,
+                    "full_name"
+                ].iloc[0]
+            )
+        )
+
+        selected_status = st.selectbox(
+            "Payment Status",
+            [
+                "Pending",
+                "Paid"
+            ]
+        )
+
+        if st.button("Update Payment Status"):
+
+            try:
+
+                update_payment_status(
+                    bill_id=selected_bill_id,
+                    payment_status=selected_status
+                )
+
+                st.success(
+                    "Payment status updated successfully."
+                )
+
+                st.rerun()
+
+            except ValueError as error:
+
+                st.error(
+                    str(error)
+                )
+
+            except Exception as error:
+
+                st.error(
+                    f"Unexpected error: {error}"
+                )
+
 
 # --------------------------------------------------
 # Footer
