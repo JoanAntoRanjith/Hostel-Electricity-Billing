@@ -115,6 +115,21 @@ def calculate_room_billing_from_database(
     if room is None:
         raise ValueError("Room not found.")
 
+    # Check the latest meter reading before processing
+    latest_reading = get_previous_reading(
+        room_id,
+        billing_end_date + timedelta(days=1)
+    )
+
+    if latest_reading is not None:
+        latest_reading_date = latest_reading[0]
+
+        if billing_end_date <= latest_reading_date:
+            raise ValueError(
+                f"Reading date must be after the latest meter reading "
+                f"({latest_reading_date})."
+            )
+
     previous_reading = get_previous_reading(
         room_id,
         billing_end_date
