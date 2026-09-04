@@ -36,10 +36,6 @@ def get_rooms():
 
 rooms = get_rooms()
 
-print(rooms)
-print()
-print("Data type:", type(rooms))
-
 '''get_tenants() function'''
 
 def get_tenants():
@@ -119,3 +115,64 @@ def get_occupancy():
     connection.close()
 
     return occupancy
+
+def get_billing_history():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            bc.cycle_id,
+            r.room_number,
+            bc.start_date,
+            bc.end_date,
+            bc.previous_reading,
+            bc.current_reading,
+            bc.units_consumed,
+            bc.rate_per_unit,
+            bc.total_bill,
+            COUNT(tb.bill_id) AS tenant_count
+        FROM billing_cycles bc
+        JOIN rooms r
+            ON bc.room_id = r.room_id
+        LEFT JOIN tenant_bills tb
+            ON bc.cycle_id = tb.cycle_id
+        GROUP BY
+            bc.cycle_id,
+            r.room_number,
+            bc.start_date,
+            bc.end_date,
+            bc.previous_reading,
+            bc.current_reading,
+            bc.units_consumed,
+            bc.rate_per_unit,
+            bc.total_bill
+        ORDER BY
+            bc.end_date DESC,
+            r.room_number;
+    """)
+
+    billing_history = cursor.fetchall()
+
+    columns = [
+        "cycle_id",
+        "room_number",
+        "start_date",
+        "end_date",
+        "previous_reading",
+        "current_reading",
+        "units_consumed",
+        "rate_per_unit",
+        "total_bill",
+        "tenant_count"
+    ]
+
+    billing_history = pd.DataFrame(
+        billing_history,
+        columns=columns
+    )
+
+    cursor.close()
+    connection.close()
+
+    return billing_history

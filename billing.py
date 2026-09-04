@@ -89,16 +89,46 @@ def calculate_room_billing(
         tenant_occupied_days
     )
 
-    tenant_bills = []
+    # Calculate exact tenant amounts before rounding
+    exact_amounts = []
 
     for occupied_days in tenant_occupied_days:
-        amount = calculate_tenant_bill(
-            total_room_bill,
-            occupied_days,
-            total_tenant_days
+
+        exact_amount = (
+            total_room_bill
+            * occupied_days
+            / total_tenant_days
         )
 
-        tenant_bills.append(amount)
+        exact_amounts.append(exact_amount)
+
+    # Round each amount to 2 decimal places
+    tenant_bills = [
+        round(amount, 2)
+        for amount in exact_amounts
+    ]
+
+    # Calculate rounding difference
+    rounded_total = sum(tenant_bills)
+
+    rounding_difference = round(
+        total_room_bill - rounded_total,
+        2
+    )
+
+    # Apply any rounding difference to the largest bill
+    if rounding_difference != 0:
+
+        largest_index = max(
+            range(len(tenant_bills)),
+            key=lambda index: tenant_bills[index]
+        )
+
+        tenant_bills[largest_index] = round(
+            tenant_bills[largest_index]
+            + rounding_difference,
+            2
+        )
 
     return {
         "units_consumed": units_consumed,

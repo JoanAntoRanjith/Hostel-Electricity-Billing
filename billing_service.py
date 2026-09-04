@@ -150,9 +150,9 @@ def calculate_room_billing_from_database(
     ]
 
     billing_result = calculate_room_billing(
-        previous_reading=previous_reading[1],
-        current_reading=current_reading,
-        rate_per_unit=room[4],
+        previous_reading=float(previous_reading[1]),
+        current_reading=float(current_reading),
+        rate_per_unit=float(room[4]),
         tenant_occupied_days=occupied_days
     )
 
@@ -258,39 +258,82 @@ def save_complete_billing(billing_result):
     connection = get_connection()
 
     try:
-        cycle_id = save_billing_cycle(
-            connection=connection,
-            room_id=billing_result["room_id"],
-            start_date=billing_result["billing_start_date"],
-            end_date=billing_result["billing_end_date"],
-            previous_reading=billing_result["previous_reading"],
-            current_reading=billing_result["current_reading"],
-            units_consumed=billing_result["units_consumed"],
-            rate_per_unit=billing_result["rate_per_unit"],
-            total_bill=billing_result["total_room_bill"]
-        )
+        cursor = connection.cursor()
 
-        save_tenant_bills(
-            connection=connection,
-            cycle_id=cycle_id,
-            tenant_bills=billing_result["tenant_bills"]
-        )
+        # 1. Save meter reading
+        cursor.execute("""
+            INSERT INTO meter_readings (
+                room_id,
+                reading_date,
+                reading_value
+            )
+            VALUES (%s, %s, %s);
+        """, (
+            billing_result["room_id"],
+            billing_result["billing_end_date"],
+            billing_result["current_reading"]
+        ))
 
+        # 2. Save billing cycle
+        cursor.execute("""
+            INSERT INTO billing_cycles (
+                room_id,
+                start_date,
+                end_date,
+                previous_reading,
+                current_reading,
+                units_consumed,
+                rate_per_unit,
+                total_bill
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING cycle_id;
+        """, (
+            billing_result["room_id"],
+            billing_result["billing_start_date"],
+            billing_result["billing_end_date"],
+            billing_result["previous_reading"],
+            billing_result["current_reading"],
+            billing_result["units_consumed"],
+            billing_result["rate_per_unit"],
+            billing_result["total_room_bill"]
+        ))
+
+        cycle_id = cursor.fetchone()[0]
+
+        # 3. Save tenant bills
+        for bill in billing_result["tenant_bills"]:
+
+            cursor.execute("""
+                INSERT INTO tenant_bills (
+                    cycle_id,
+                    tenant_id,
+                    occupied_days,
+                    tenant_days_total,
+                    amount
+                )
+                VALUES (%s, %s, %s, %s, %s);
+            """, (
+                cycle_id,
+                bill["tenant_id"],
+                bill["occupied_days"],
+                bill["total_tenant_days"],
+                bill["amount"]
+            ))
+
+        # 4. Commit everything together
         connection.commit()
 
         return cycle_id
-
 
     except psycopg2.errors.UniqueViolation:
 
         connection.rollback()
 
         raise ValueError(
-
-            "A billing cycle already exists for this room and period."
-
+            "A meter reading or billing cycle already exists "
+            "for this room and period."
         )
-
 
     except Exception:
 
@@ -299,6 +342,7 @@ def save_complete_billing(billing_result):
         raise
 
     finally:
+
         connection.close()
 
 from datetime import date
