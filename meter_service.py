@@ -3,7 +3,12 @@ import psycopg2
 from db import get_connection
 
 
+# --------------------------------------------------
+# Get Previous Meter Reading
+# --------------------------------------------------
+
 def get_previous_reading(room_id, reading_date):
+
     connection = get_connection()
     cursor = connection.cursor()
 
@@ -27,7 +32,42 @@ def get_previous_reading(room_id, reading_date):
     return reading[0]
 
 
-def save_meter_reading(room_id, reading_date, reading_value):
+# --------------------------------------------------
+# Get Latest Meter Reading
+# --------------------------------------------------
+
+def get_latest_reading(room_id):
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            reading_date,
+            reading_value
+        FROM meter_readings
+        WHERE room_id = %s
+        ORDER BY reading_date DESC
+        LIMIT 1;
+    """, (room_id,))
+
+    reading = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    return reading
+
+
+# --------------------------------------------------
+# Save Meter Reading
+# --------------------------------------------------
+
+def save_meter_reading(
+    room_id,
+    reading_date,
+    reading_value
+):
 
     if room_id is None:
         raise ValueError("Room ID is required.")
@@ -39,22 +79,29 @@ def save_meter_reading(room_id, reading_date, reading_value):
         raise ValueError("Reading value is required.")
 
     if reading_value < 0:
-        raise ValueError("Reading value cannot be negative.")
+        raise ValueError(
+            "Reading value cannot be negative."
+        )
 
     previous_reading = get_previous_reading(
         room_id,
         reading_date
     )
 
-    if previous_reading is not None and reading_value < previous_reading:
+    if (
+        previous_reading is not None
+        and reading_value < previous_reading
+    ):
         raise ValueError(
-            f"Current reading ({reading_value}) cannot be less than "
-            f"previous reading ({previous_reading})."
+            f"Current reading ({reading_value}) "
+            f"cannot be less than previous reading "
+            f"({previous_reading})."
         )
 
     connection = get_connection()
 
     try:
+
         cursor = connection.cursor()
 
         cursor.execute("""
@@ -75,15 +122,20 @@ def save_meter_reading(room_id, reading_date, reading_value):
         cursor.close()
 
     except psycopg2.errors.UniqueViolation:
+
         connection.rollback()
 
         raise ValueError(
-            "A meter reading already exists for this room and date."
+            "A meter reading already exists "
+            "for this room and date."
         )
 
     except Exception:
+
         connection.rollback()
+
         raise
 
     finally:
+
         connection.close()
