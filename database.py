@@ -335,6 +335,7 @@ def update_tenant_move_out(tenant_id, move_out_date):
 
     try:
 
+        # Update occupancy record
         cursor.execute("""
             UPDATE occupancy
             SET move_out_date = %s
@@ -350,10 +351,26 @@ def update_tenant_move_out(tenant_id, move_out_date):
                 "Active occupancy record not found for this tenant."
             )
 
+        # Update tenant status
+        cursor.execute("""
+            UPDATE tenants
+            SET status = 'Inactive'
+            WHERE tenant_id = %s;
+        """, (
+            tenant_id
+        ))
+
+        if cursor.rowcount == 0:
+            raise ValueError(
+                "Tenant record not found."
+            )
+
+        # Commit both updates together
         connection.commit()
 
     except Exception:
 
+        # Undo both changes if anything fails
         connection.rollback()
         raise
 
