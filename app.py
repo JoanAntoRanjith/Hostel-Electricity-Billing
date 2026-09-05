@@ -40,6 +40,41 @@ st.set_page_config(
 )
 
 # --------------------------------------------------
+# Sidebar Navigation
+# --------------------------------------------------
+
+with st.sidebar:
+
+    st.markdown("## ⚡ SIGMA Men's PG")
+
+    st.markdown("---")
+
+    st.markdown("### 📌 Quick Navigation")
+
+    st.markdown("""
+    - 📊 Billing Dashboard
+    - 🚪 Rooms Overview
+    - ⚡ Meter Reading
+    - 🧾 Billing Preview
+    - 👤 Tenant Management
+    - 📋 Billing History
+    """)
+
+    st.markdown("---")
+
+    st.caption(
+        "Beds & Dreams | SIGMA Men's Hostel"
+    )
+    st.markdown(
+        """
+        <div style="text-align: center; color: gray; padding-top: 30px;">
+            Created by <b>J A Ranjith</b>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+# --------------------------------------------------
 # Hostel Logo
 # --------------------------------------------------
 
@@ -122,7 +157,182 @@ st.markdown(
     padding-top: 2rem;
     padding-bottom: 3rem;
     }
+    
+        .calculation-card {
+        background: #FFFDF7;
+        border: 1px solid #D6B15A;
+        border-radius: 14px;
+        padding: 18px 20px;
+        text-align: center;
+        min-height: 110px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    }
 
+    .calculation-title {
+        color: #8A6A20;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .calculation-value {
+        color: #0B243B;
+        font-size: 26px;
+        font-weight: 700;
+    }
+    
+    .preview-card {
+        background: #FFFDF7;
+        border: 1px solid #D6B15A;
+        border-radius: 14px;
+        padding: 16px 18px;
+        text-align: center;
+        min-height: 105px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .preview-title {
+        color: #8A6A20;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .preview-value {
+        color: #0B243B;
+        font-size: 23px;
+        font-weight: 700;
+    }
+    
+    .reconciliation-card {
+        background: #F3F8F3;
+        border: 1px solid #9DB89D;
+        border-radius: 14px;
+        padding: 16px 20px;
+        margin: 15px 0;
+        text-align: center;
+    }
+
+    .reconciliation-title {
+        color: #315C31;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    .reconciliation-value {
+        color: #234523;
+        font-size: 22px;
+        font-weight: 700;
+    }
+    
+    .payment-card {
+        background: #FFFDF7;
+        border: 1px solid #D6B15A;
+        border-radius: 14px;
+        padding: 16px 18px;
+        text-align: center;
+        min-height: 105px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .payment-title {
+        color: #8A6A20;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .payment-value {
+        color: #0B243B;
+        font-size: 23px;
+        font-weight: 700;
+    }
+
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #0B243B;
+    }
+
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3 {
+        color: #D6B15A;
+    }
+
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] li {
+        color: #FFFDF7;
+    }
+
+    [data-testid="stSidebar"] hr {
+        border-color: #D6B15A;
+    }
+    
+    .room-info-card {
+        background: #FFFDF7;
+        border: 1px solid #D6B15A;
+        border-radius: 12px;
+        padding: 12px 18px;
+        margin: 8px 0 18px 0;
+        color: #0B243B;
+        font-size: 14px;
+    }
+    
+    /* Section spacing */
+    .stSubheader {
+        margin-top: 28px;
+        margin-bottom: 12px;
+    }
+
+    /* Divider spacing */
+    hr {
+        margin-top: 28px;
+        margin-bottom: 28px;
+    }
+    
+    .tenant-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #FFFDF7;
+        border: 1px solid #D6B15A;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-top: 10px;
+    }
+
+    .tenant-table th {
+        background: #0B243B;
+        color: #FFFDF7;
+        padding: 12px 14px;
+        text-align: left;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .tenant-table td {
+        padding: 11px 14px;
+        border-bottom: 1px solid #E8DFC9;
+        color: #0B243B;
+        font-size: 14px;
+    }
+
+    .tenant-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .tenant-table tr:hover td {
+        background: #F7F3E8;
+    }
+
+    .tenant-amount {
+        color: #8A6A20;
+        font-weight: 700;
+        text-align: right;
+    }
+
+    .tenant-days {
+     text-align: center;
+    }
     </style>
     """,
     unsafe_allow_html=True
@@ -240,86 +450,178 @@ st.html(
 
 rooms = get_rooms()
 
-
 # --------------------------------------------------
-# Display Rooms
+# Rooms Overview
 # --------------------------------------------------
 
-st.subheader("Rooms")
+st.subheader("🚪 Rooms Overview")
 
-st.dataframe(
-    rooms,
-    width="stretch"
-)
+room_columns = st.columns(4)
+
+for index, (_, room) in enumerate(rooms.iterrows()):
+
+    with room_columns[index % 4]:
+
+        room_type_icon = (
+            "❄️" if room["room_type"] == "AC"
+            else "🌀"
+        )
+
+        st.html(
+            f"""
+            <div class="dashboard-card"
+                 style="min-height: 145px;">
+
+                <div class="dashboard-title">
+                    ROOM {int(room["room_number"])}
+                </div>
+
+                <div style="
+                    color: #0B243B;
+                    font-size: 14px;
+                    margin-top: 8px;
+                ">
+                    {room_type_icon}
+                    {room["room_type"]}
+                </div>
+
+                <div style="
+                    color: #0B243B;
+                    font-size: 13px;
+                    margin-top: 6px;
+                ">
+                    👥 Capacity: {int(room["capacity"])}
+                </div>
+
+                <div style="
+                    color: #8A6A20;
+                    font-size: 13px;
+                    font-weight: 600;
+                    margin-top: 6px;
+                ">
+                    ⚡ ₹{float(room["rate_per_unit"]):,.2f} / unit
+                </div>
+
+            </div>
+            """
+        )
 
 
 # --------------------------------------------------
 # Meter Reading Entry
 # --------------------------------------------------
 
-st.subheader("Enter Meter Reading")
+st.subheader("⚡ Meter Reading Entry")
+
+st.caption(
+    "Enter the latest electricity meter reading for the selected room."
+)
+st.markdown(
+    """
+    <style>
+
+    .meter-info-card {
+        background: #FFFDF7;
+        border: 1px solid #D6B15A;
+        border-radius: 14px;
+        padding: 16px 20px;
+        margin: 10px 0 18px 0;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .meter-label {
+        color: #8A6A20;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .meter-value {
+        color: #0B243B;
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 room_options = rooms[
     "room_number"
 ].tolist()
 
-selected_room_number = st.selectbox(
-    "Select Room",
-    room_options
-)
-
-selected_room = rooms[
-    rooms["room_number"] == selected_room_number
-].iloc[0]
-
-room_id = int(
-    selected_room["room_id"]
-)
-
-rate_per_unit = float(
-    selected_room["rate_per_unit"]
-)
-
-
 # --------------------------------------------------
-# Determine Reading Date
+# Meter Reading Inputs
 # --------------------------------------------------
 
-latest_reading = get_latest_reading(
-    room_id
-)
+col1, col2 = st.columns(2)
 
-if latest_reading is not None:
+with col1:
 
-    latest_reading_date = latest_reading[0]
-
-    minimum_date = (
-        latest_reading_date
-        + timedelta(days=1)
+    selected_room_number = st.selectbox(
+        "🚪 Select Room",
+        room_options
     )
 
-    reading_date = st.date_input(
-        "Reading Date",
-        min_value=minimum_date,
-        value=minimum_date
+with col2:
+
+    # Get selected room details
+    selected_room = rooms[
+        rooms["room_number"] == selected_room_number
+    ].iloc[0]
+
+    room_id = int(
+        selected_room["room_id"]
     )
 
-else:
-
-    reading_date = st.date_input(
-        "Reading Date"
+    rate_per_unit = float(
+        selected_room["rate_per_unit"]
     )
+
+    # Determine minimum reading date
+    latest_reading = get_latest_reading(
+        room_id
+    )
+
+    if latest_reading is not None:
+
+        latest_reading_date = latest_reading[0]
+
+        minimum_date = (
+            latest_reading_date
+            + timedelta(days=1)
+        )
+
+        reading_date = st.date_input(
+            "📅 Reading Date",
+            min_value=minimum_date,
+            value=minimum_date
+        )
+
+    else:
+
+        reading_date = st.date_input(
+            "📅 Reading Date"
+        )
 
 
 # --------------------------------------------------
 # Room Information
 # --------------------------------------------------
 
-st.caption(
-    f"Room Type: {selected_room['room_type']}  |  "
-    f"Capacity: {int(selected_room['capacity'])}  |  "
-    f"Rate: ₹{rate_per_unit:.2f}/unit"
-)
+st.html(f"""
+<div class="room-info-card">
+    🚪 <b>Room {int(selected_room["room_number"])}</b>
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    {"❄️" if selected_room["room_type"] == "AC" else "🌀"}
+    <b>{selected_room["room_type"]}</b>
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    👥 <b>Capacity:</b> {int(selected_room["capacity"])}
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    ⚡ <b>Rate:</b> ₹{rate_per_unit:.2f}/unit
+</div>
+""")
 
 
 # --------------------------------------------------
@@ -333,26 +635,43 @@ previous_reading = get_previous_reading(
 
 if previous_reading is not None:
 
-    st.info(
-        f"Previous Meter Reading: "
-        f"{float(previous_reading):.2f} units"
-    )
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        st.html(
+            f"""
+            <div class="meter-info-card">
+                <div class="meter-label">
+                    PREVIOUS METER READING
+                </div>
+                <div class="meter-value">
+                    ⚡ {float(previous_reading):,.0f} units
+                </div>
+            </div>
+            """
+        )
+
+    with col2:
+
+        st.html(
+            f"""
+            <div class="meter-info-card">
+                <div class="meter-label">
+                    ELECTRICITY RATE
+                </div>
+                <div class="meter-value">
+                    ₹{rate_per_unit:,.2f} / unit
+                </div>
+            </div>
+            """
+        )
 
 else:
 
     st.warning(
         "No previous meter reading found for this room."
     )
-
-
-# --------------------------------------------------
-# Electricity Rate
-# --------------------------------------------------
-
-st.info(
-    f"Electricity Rate: ₹{rate_per_unit:.2f} per unit"
-)
-
 
 # --------------------------------------------------
 # Current Meter Reading
@@ -361,7 +680,7 @@ st.info(
 if previous_reading is not None:
 
     reading_value = st.number_input(
-        "Current Meter Reading",
+        "⚡ Current Meter Reading",
         min_value=float(previous_reading),
         value=float(previous_reading),
         step=1.0
@@ -370,7 +689,7 @@ if previous_reading is not None:
 else:
 
     reading_value = st.number_input(
-        "Current Meter Reading",
+        "⚡ Current Meter Reading",
         min_value=0.0,
         value=0.0,
         step=1.0
@@ -395,15 +714,39 @@ if previous_reading is not None:
 
     col1, col2 = st.columns(2)
 
-    col1.metric(
-        "Units Consumed",
-        f"{units_consumed:.0f} units"
-    )
+    with col1:
+        st.html(
+            f"""
+            <div class="calculation-card">
 
-    col2.metric(
-        "Estimated Room Bill",
-        f"₹{estimated_bill:,.2f}"
-    )
+                <div class="calculation-title">
+                    ⚡ UNITS CONSUMED
+                </div>
+
+                <div class="calculation-value">
+                    {units_consumed:.0f} units
+                </div>
+
+            </div>
+            """
+        )
+
+    with col2:
+        st.html(
+            f"""
+            <div class="calculation-card">
+
+                <div class="calculation-title">
+                    💰 ESTIMATED ROOM BILL
+                </div>
+
+                <div class="calculation-value">
+                    ₹{estimated_bill:,.2f}
+                </div>
+
+            </div>
+            """
+        )
 
 
 # --------------------------------------------------
@@ -452,8 +795,12 @@ if "billing_preview" in st.session_state:
     st.divider()
 
     st.subheader(
-        f"Billing Preview — Room "
+        f"🧾 Billing Preview — Room "
         f"{billing_preview['room_number']}"
+    )
+
+    st.caption(
+        "Review meter consumption, billing amount, and tenant-wise allocation before finalizing."
     )
 
     # ----------------------------------------------
@@ -473,36 +820,73 @@ if "billing_preview" in st.session_state:
 
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric(
-        "Previous Reading",
-        f"{float(billing_preview['previous_reading']):.0f}"
-    )
+    with col1:
+        st.html(f"""
+        <div class="preview-card">
+            <div class="preview-title">
+                PREVIOUS READING
+            </div>
+            <div class="preview-value">
+                {float(billing_preview["previous_reading"]):,.0f}
+            </div>
+        </div>
+        """)
 
-    col2.metric(
-        "Current Reading",
-        f"{float(billing_preview['current_reading']):.0f}"
-    )
+    with col2:
+        st.html(f"""
+        <div class="preview-card">
+            <div class="preview-title">
+                CURRENT READING
+            </div>
+            <div class="preview-value">
+                {float(billing_preview["current_reading"]):,.0f}
+            </div>
+        </div>
+        """)
 
-    col3.metric(
-        "Units Consumed",
-        f"{float(billing_preview['units_consumed']):.0f}"
-    )
+    with col3:
+        st.html(f"""
+        <div class="preview-card">
+            <div class="preview-title">
+                UNITS CONSUMED
+            </div>
+            <div class="preview-value">
+                {float(billing_preview["units_consumed"]):,.0f}
+            </div>
+        </div>
+        """)
 
-    col4.metric(
-        "Rate / Unit",
-        f"₹{float(billing_preview['rate_per_unit']):,.2f}"
-    )
+    with col4:
+        st.html(f"""
+        <div class="preview-card">
+            <div class="preview-title">
+                RATE / UNIT
+            </div>
+            <div class="preview-value">
+                ₹{float(billing_preview["rate_per_unit"]):,.2f}
+            </div>
+        </div>
+        """)
 
-    st.metric(
-        "Total Room Bill",
-        f"₹{float(billing_preview['total_room_bill']):,.2f}"
-    )
+    st.html(f"""
+    <div class="preview-card" style="margin-top: 12px;">
+        <div class="preview-title">
+            TOTAL ROOM BILL
+        </div>
+        <div class="preview-value">
+            ₹{float(billing_preview["total_room_bill"]):,.2f}
+        </div>
+    </div>
+    """)
 
     # ----------------------------------------------
     # Tenant Bill Allocation
     # ----------------------------------------------
 
-    st.subheader("Tenant Bill Allocation")
+    st.subheader("👥 Tenant Bill Allocation")
+    st.caption(
+        "Electricity charges are allocated based on each tenant's occupied days."
+    )
 
     tenant_rows = []
 
@@ -514,15 +898,44 @@ if "billing_preview" in st.session_state:
             "Amount (₹)": float(tenant["amount"])
         })
 
-    tenant_df = pd.DataFrame(
-        tenant_rows
-    )
+    tenant_df = pd.DataFrame(tenant_rows)
 
-    st.dataframe(
-        tenant_df,
-        width="stretch",
-        hide_index=True
-    )
+    # --------------------------------------------------
+    # Tenant Bill Allocation Table
+    # --------------------------------------------------
+
+    table_rows = ""
+
+    for _, tenant in tenant_df.iterrows():
+        table_rows += f"""
+        <tr>
+            <td>{tenant["Tenant"]}</td>
+            <td class="tenant-days">
+                {int(tenant["Occupied Days"])}
+            </td>
+            <td class="tenant-amount">
+                ₹{float(tenant["Amount (₹)"]):,.2f}
+            </td>
+        </tr>
+        """
+
+    st.html(f"""
+    <table class="tenant-table">
+
+        <thead>
+            <tr>
+                <th>Tenant</th>
+                <th>Occupied Days</th>
+                <th style="text-align: right;">Amount (₹)</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {table_rows}
+        </tbody>
+
+    </table>
+    """)
 
     # ----------------------------------------------
     # Reconciliation Check
@@ -539,17 +952,30 @@ if "billing_preview" in st.session_state:
 
     if abs(tenant_total - room_total) < 0.01:
 
-        st.success(
-            f"Bill allocation verified: "
-            f"₹{tenant_total:,.2f}"
-        )
+        st.html(f"""
+        <div class="reconciliation-card">
+            <div class="reconciliation-title">
+                ✅ BILL ALLOCATION VERIFIED
+            </div>
+            <div class="reconciliation-value">
+                ₹{tenant_total:,.2f}
+            </div>
+        </div>
+        """)
 
         # ------------------------------------------
         # Finalize Billing
         # ------------------------------------------
+        st.divider()
 
-        if st.button("Finalize Billing"):
+        st.subheader("✅ Finalize Billing")
+        st.caption(
+            "Review the billing details and tenant allocations above before finalizing."
+        )
 
+        if st.button("✅ Finalize Billing",
+                     use_container_width=True
+                     ):
             try:
 
                 cycle_id = save_complete_billing(
@@ -604,6 +1030,9 @@ if "billing_preview" in st.session_state:
 st.divider()
 
 st.subheader("👤 Tenant Management")
+st.caption(
+    "Manage active tenants and record their move-out dates."
+)
 
 occupancy = get_occupancy()
 
@@ -647,24 +1076,33 @@ else:
 
         col1, col2, col3 = st.columns(3)
 
-        col1.write(
-            f"**Room:** {selected_tenant['room_number']}"
-        )
+        with col1:
+            st.info(
+                f"🚪 **Room**\n\n"
+                f"Room {selected_tenant['room_number']}"
+            )
 
-        col2.write(
-            f"**Move-in Date:** "
-            f"{selected_tenant['move_in_date']}"
-        )
+        with col2:
+            st.info(
+                f"📅 **Move-in Date**\n\n"
+                f"{selected_tenant['move_in_date']}"
+            )
 
-        col3.write(
-            "**Status:** Active"
-        )
+        with col3:
+            st.success(
+                "🟢 **Status**\n\n"
+                "Active"
+            )
 
         move_out_date = st.date_input(
-            "Move-out Date"
+            "📅 Move-out Date",
+            help="Select the date on which the tenant moved out."
         )
 
-        if st.button("Record Move-Out"):
+        if st.button(
+                "🚪 Record Move-Out",
+                use_container_width=True
+        ):
 
             try:
 
@@ -699,6 +1137,9 @@ else:
 st.divider()
 
 st.subheader("📋 Billing History")
+st.caption(
+    "Review finalized electricity billing cycles and room-wise billing records."
+)
 
 billing_history = get_billing_history()
 
@@ -785,7 +1226,39 @@ else:
     st.dataframe(
         display_history,
         width="stretch",
-        hide_index=True
+        hide_index=True,
+        column_config={
+            "Cycle ID": st.column_config.NumberColumn(
+                "Cycle ID",
+                format="%d"
+            ),
+            "Room": st.column_config.NumberColumn(
+                "Room",
+                format="Room %d"
+            ),
+            "Previous Reading": st.column_config.NumberColumn(
+                "Previous Reading",
+                format="%.0f"
+            ),
+            "Current Reading": st.column_config.NumberColumn(
+                "Current Reading",
+                format="%.0f"
+            ),
+            "Units": st.column_config.NumberColumn(
+                "⚡ Units",
+                format="%.0f"
+            ),
+            "Rate / Unit": st.column_config.TextColumn(
+                "🏷️ Rate / Unit"
+            ),
+            "Total Bill": st.column_config.TextColumn(
+                "💰 Total Bill"
+            ),
+            "Tenants": st.column_config.NumberColumn(
+                "👥 Tenants",
+                format="%d"
+            )
+        }
     )
 
     # ----------------------------------------------
@@ -793,6 +1266,9 @@ else:
     # ----------------------------------------------
 
     st.subheader("🔍 Billing Cycle Details")
+    st.caption(
+        "Select a billing cycle to view tenant charges and payment status."
+    )
 
     cycle_options = filtered_history[
         "cycle_id"
@@ -836,28 +1312,59 @@ else:
             collection_rate = 0
 
         st.subheader("💰 Payment Summary")
+        st.caption(
+            "Track billed, collected, and outstanding electricity payments."
+        )
 
         col1, col2, col3, col4 = st.columns(4)
 
-        col1.metric(
-            "Total Bill",
-            f"₹{float(total_bill):,.2f}"
-        )
+        with col1:
+            st.html(f"""
+            <div class="payment-card">
+                <div class="payment-title">
+                    💰 TOTAL BILL
+                </div>
+                <div class="payment-value">
+                    ₹{float(total_bill):,.2f}
+                </div>
+            </div>
+            """)
 
-        col2.metric(
-            "Paid",
-            f"₹{float(paid_bill):,.2f}"
-        )
+        with col2:
+            st.html(f"""
+            <div class="payment-card">
+                <div class="payment-title">
+                    ✅ PAID
+                </div>
+                <div class="payment-value">
+                    ₹{float(paid_bill):,.2f}
+                </div>
+            </div>
+            """)
 
-        col3.metric(
-            "Pending",
-            f"₹{float(pending_bill):,.2f}"
-        )
+        with col3:
+            st.html(f"""
+            <div class="payment-card">
+                <div class="payment-title">
+                    ⏳ PENDING
+                </div>
+                <div class="payment-value">
+                    ₹{float(pending_bill):,.2f}
+                </div>
+            </div>
+            """)
 
-        col4.metric(
-            "Collection Rate",
-            f"{float(collection_rate):.1f}%"
-        )
+        with col4:
+            st.html(f"""
+            <div class="payment-card">
+                <div class="payment-title">
+                    📈 COLLECTION RATE
+                </div>
+                <div class="payment-value">
+                    {float(collection_rate):.1f}%
+                </div>
+            </div>
+            """)
 
     if tenant_bills.empty:
 
@@ -905,6 +1412,9 @@ else:
         # ------------------------------------------
 
         st.subheader("💳 Update Payment Status")
+        st.caption(
+            "Mark an individual tenant bill as Pending or Paid."
+        )
 
         tenant_options = tenant_bills[
             "bill_id"
@@ -929,7 +1439,10 @@ else:
             ]
         )
 
-        if st.button("Update Payment Status"):
+        if st.button(
+                "💳 Update Payment Status",
+                use_container_width=True
+        ):
 
             try:
 

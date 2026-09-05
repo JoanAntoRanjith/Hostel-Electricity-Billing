@@ -357,7 +357,7 @@ def update_tenant_move_out(tenant_id, move_out_date):
             SET status = 'Inactive'
             WHERE tenant_id = %s;
         """, (
-            tenant_id
+            tenant_id,
         ))
 
         if cursor.rowcount == 0:
